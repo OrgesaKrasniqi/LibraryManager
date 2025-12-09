@@ -1,35 +1,71 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useState } from "react";
+import Input from "./components/input";
+import Button from "./components/button";
+import Book from "./components/book";
+import "./App.css";
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [books, setBooks] = useState([]);
+  const [form, setForm] = useState({
+    title: "",
+    author: "",
+    description: "",
+    pages: "",
+    stock: "",
+    image: "",
+  });
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setForm({ ...form, [name]: value });
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!form.title || !form.author || !form.pages || form.stock === "") {
+      alert("Plotësoni fushat kryesore!");
+      return;
+    }
+
+    const newBook = {
+      ...form,
+      stock: parseInt(form.stock),
+      pages: parseInt(form.pages),
+      image: form.image || "https://via.placeholder.com/150",
+      id: Date.now(),
+    };
+
+    setBooks([...books, newBook]);
+    setForm({ title: "", author: "", description: "", pages: "", stock: "", image: "" });
+  };
+
+  const deleteBook = (id) => setBooks(books.filter((b) => b.id !== id));
+  const sellBook = (id) => setBooks(books.map((b) => b.id === id ? { ...b, stock: b.stock > 0 ? b.stock - 1 : 0 } : b));
+  const editBook = (book) => {
+    setForm({ ...book });
+    deleteBook(book.id);
+  };
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+    <div className="App">
+      <h1>Library Manager</h1>
+      <form onSubmit={handleSubmit}>
+        <Input name="title" value={form.title} onChange={handleChange} label="Emri" />
+        <Input name="author" value={form.author} onChange={handleChange} label="Autori" />
+        <Input name="description" value={form.description} onChange={handleChange} label="Përshkrimi" type="textarea" />
+        <Input name="pages" value={form.pages} onChange={handleChange} label="Numri i faqeve" type="number" />
+        <Input name="stock" value={form.stock} onChange={handleChange} label="Numri në stok" type="number" />
+        <Input name="image" value={form.image} onChange={handleChange} label="Image URL" />
+        <Button type="submit">Shto Librin</Button>
+      </form>
+
+      <div className="book-list">
+        {books.map((book) => (
+          <Book key={book.id} book={book} deleteBook={deleteBook} sellBook={sellBook} editBook={editBook} />
+        ))}
       </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    </div>
+  );
 }
 
-export default App
+export default App;
